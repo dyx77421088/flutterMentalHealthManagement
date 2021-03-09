@@ -1,3 +1,6 @@
+// To parse this JSON data, do
+//
+//     final wdxUserModel = wdxUserModelFromJson(jsonString);
 
 import 'dart:convert';
 
@@ -7,52 +10,72 @@ String wdxUserModelToJson(WDXUserModel data) => json.encode(data.toJson());
 
 class WDXUserModel {
   WDXUserModel({
-    this.message,
-    this.data,
-    this.code,
-  });
-
-  String message;
-  Data data;
-  int code;
-
-  factory WDXUserModel.fromJson(Map<String, dynamic> json) => WDXUserModel(
-    message: json["message"],
-    data: Data.fromJson(json["data"]),
-    code: json["code"],
-  );
-
-  Map<String, dynamic> toJson() => {
-    "message": message,
-    "data": data.toJson(),
-    "code": code,
-  };
-}
-
-class Data {
-  Data({
     this.id,
-    this.userName,
-    this.phoneNumber,
-    this.token,
+    this.phone,
+    this.nickname,
+    this.createTime,
+    this.head,
+    this.sex,
+    this.birth,
+    this.hometown,
+    this.ethnic,
+    this.physicalCondition,
+    this.qq,
+    this.character,
+    this.hobby,
+    this.likeSubjects,
+    this.description,
   });
 
   int id;
-  String userName;
-  String phoneNumber;
-  String token;
+  String phone;
+  String nickname;
+  DateTime createTime;
+  String head;
+  int sex;
+  DateTime birth;
+  String hometown;
+  String ethnic;
+  String physicalCondition;
+  String qq;
+  String character;
+  String hobby;
+  String likeSubjects;
+  String description;
 
-  factory Data.fromJson(Map<String, dynamic> json) => Data(
+  factory WDXUserModel.fromJson(Map<String, dynamic> json) => WDXUserModel(
     id: json["id"],
-    userName: json["user_name"],
-    phoneNumber: json["phone_number"],
-    token: json["token"],
+    phone: json["phone"],
+    nickname: json["nickname"],
+    createTime: json["create_time"] == null ? null : DateTime.parse(json["create_time"]),
+    head: json["head"],
+    sex: json["sex"],
+    birth: json["birth"] == null ? null : DateTime.parse(json["birth"]),
+    hometown: json["hometown"],
+    ethnic: json["ethnic"],
+    physicalCondition: json["physicalCondition"],
+    qq: json["QQ"],
+    character: json["character"],
+    hobby: json["hobby"],
+    likeSubjects: json["likeSubjects"],
+    description: json["description"],
   );
 
   Map<String, dynamic> toJson() => {
     "id": id,
-    "user_name": userName,
-    "phone_number": phoneNumber,
-    "token": token,
+    "phone": phone,
+    "nickname": nickname,
+    "create_time": createTime.toIso8601String(),
+    "head": head,
+    "sex": sex,
+    "birth": birth.toIso8601String(),
+    "hometown": hometown,
+    "ethnic": ethnic,
+    "physicalCondition": physicalCondition,
+    "QQ": qq,
+    "character": character,
+    "hobby": hobby,
+    "likeSubjects": likeSubjects,
+    "description": description,
   };
 }
