@@ -5,17 +5,17 @@ import 'package:mentalHealthManagement/core/services/zx/zx_service.dart';
 import 'package:mentalHealthManagement/ui/pages/xlzx/add_xlzx.dart';
 import 'package:mentalHealthManagement/ui/pages/xlzx/look_xlzx.dart';
 
-/// 心理咨询
-class WDXXLZXPage extends StatefulWidget {
-  static const String routeName = "/WDXXLZXPage";
+/// 在线约谈
+class WDXYueTPage extends StatefulWidget {
+  static const String routeName = "/WDXYueTPage";
 
   @override
   _WDXXLZXPageState createState() => _WDXXLZXPageState();
 }
 
-class _WDXXLZXPageState extends State<WDXXLZXPage> {
+class _WDXXLZXPageState extends State<WDXYueTPage> {
   List<Datum> data;
-  int type = 2;
+  int type = 1;
 
   @override
   void initState() {
@@ -31,7 +31,7 @@ class _WDXXLZXPageState extends State<WDXXLZXPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("心理咨询"),),
+      appBar: AppBar(title: Text("在线约谈"),),
       body: Padding(
         padding: EdgeInsets.all(5.px),
         child: ListView(
@@ -41,9 +41,9 @@ class _WDXXLZXPageState extends State<WDXXLZXPage> {
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: (){
-          Navigator.pushNamed(context, WDXAddXlzxPage.routeName, arguments: type).then((value) {setState(() {
+          Navigator.pushNamed(context, WDXAddXlzxPage.routeName, arguments: type).then((value) {
             init();
-          });});
+          });
         },
       ),
     );
@@ -60,9 +60,9 @@ class _WDXXLZXPageState extends State<WDXXLZXPage> {
     child: Card(
       shape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(15.px)),
       child: Container(
-        height: 50.px,
-        padding: EdgeInsets.all(8.px),
-        child: Text(e.content, overflow: TextOverflow.ellipsis, maxLines: 1,)
+          height: 50.px,
+          padding: EdgeInsets.all(8.px),
+          child: Text(e.content, overflow: TextOverflow.ellipsis, maxLines: 1,)
       ),
     ),
     onTap: () {

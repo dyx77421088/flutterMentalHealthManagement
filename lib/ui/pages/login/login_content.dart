@@ -1,4 +1,8 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:mentalHealthManagement/core/services/config/http_request.dart';
+import 'package:mentalHealthManagement/core/services/ti_mu/ti_mu.dart';
+import 'package:mentalHealthManagement/ui/shared/time/time_util.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_login/flutter_login.dart';
 import 'package:mentalHealthManagement/core/extension/int_extension.dart';
@@ -27,21 +31,38 @@ class _LoginScreenState extends State<WDXLoginContent> {
     if (t != null) {
       /// 登录
       userVM.user = t;
+      userVM.test = await WDXTiMu.lishi(token: t.id);
       return null;
     }
     return "用户名或密码错误";
   }
 
   /// 找回密码
-  Future<String> _recoverPassword(String name) {
+  Future<String> _recoverPassword(String name) async{
+    print(name);
+    bool b = true;
     // kIsWeb
-    print('Name: $name');
-    return Future.delayed(loginTime).then((_) {
-      if (!users.containsKey(name)) {
-        return '用户名不存在';
-      }
-      return null;
+    await WDXHttpRequest().request(
+      "/user/revisePwd",
+      method: "patch",
+      data: {
+        "phone": name,
+        "password": "123456"
+      },
+      // inter:InterceptorsWrapper(
+      //   onError: (err) {
+      //     print("哈哈哈哈哈");
+      //     b = false;
+      //     return null;
+      //   },
+      //   onRequest: (_){print("12312312"); return null;},
+      //   onResponse: (_){print("33333333333333");}
+      // )
+    ).catchError((err) {
+      b = false;
     });
+
+    return b ? null : "手机号未注册";
   }
 
   /// 注册
@@ -58,6 +79,7 @@ class _LoginScreenState extends State<WDXLoginContent> {
       );
       if (d != null) {
         userVM.user = d;
+        userVM.test = await WDXTiMu.lishi(token: d.id);
         return null;
       }
       return "登录失败";

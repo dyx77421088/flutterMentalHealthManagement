@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:mentalHealthManagement/core/model/ti_mu/test.dart';
 import 'package:mentalHealthManagement/core/model/user/user_model.dart';
 import 'package:mentalHealthManagement/core/services/user/user_login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -59,6 +60,17 @@ class WDXUserViewModel extends ChangeNotifier {
   set user(WDXUserModel user) {
     _saveInfo(user);
     // notifyListeners();
+  }
+
+  /// 测试数
+  set test(WDXTestModel test) {
+    _saveTest(test);
+  }
+
+  void _saveTest(WDXTestModel test) async{
+    SharedPreferences prefs = await _prefs;
+    prefs.setInt("count", test.count);
+    prefs.setInt("topicCount", test.topicCount);
   }
 
   void tongzhi() {
@@ -133,6 +145,12 @@ class WDXUserViewModel extends ChangeNotifier {
 
   /// 描述
   String get description => !isLogin ? null : prefs.getString("description");
+
+  /// 总题目数
+  int get topicCount => !isLogin ? null : prefs.getInt("topicCount");
+
+  /// 测试数
+  int get count => !isLogin ? null : prefs.getInt("count");
 
   /// 是否登录
   bool get isLogin => prefs == null ? false : (prefs.getBool("isLogin"));

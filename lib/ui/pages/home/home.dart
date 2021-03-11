@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:mentalHealthManagement/core/extension/int_extension.dart';
 import 'package:mentalHealthManagement/core/services/config/http_request.dart';
+import 'package:mentalHealthManagement/core/services/ti_mu/ti_mu.dart';
 import 'package:mentalHealthManagement/core/view_model/user_view_model.dart';
 import 'package:mentalHealthManagement/ui/pages/test/test.dart';
 import 'package:mentalHealthManagement/ui/shared/dialog/dialog.dart';
+import 'package:provider/provider.dart';
 import 'home_data.dart';
 
 class WDXHomePage extends StatefulWidget {
@@ -30,22 +32,24 @@ class _WDXHomePageState extends State<WDXHomePage> {
     );
   }
 
-  Widget buildItem(BuildContext context, index) => GestureDetector(
-    child: ListTile(
-      leading: data[index].image,
-      title: Text(data[index].title),
-      subtitle: Text(data[index].content),
+  Widget buildItem(BuildContext context, index) => Consumer<WDXUserViewModel>(
+    builder: (ctx, userVM, child) => GestureDetector(
+      child: ListTile(
+        leading: data[index].image,
+        title: Text(data[index].title),
+        subtitle: Text(data[index].content),
+      ),
+      onTap: () {
+        Navigator.pushNamed(context, WDXTestPage.routeName, arguments: data[index]).then((value) => {
+          if (value != null) {
+            showFen(context, value, userVM)
+          }
+        });
+      },
     ),
-    onTap: () {
-      Navigator.pushNamed(context, WDXTestPage.routeName, arguments: data[index]).then((value) => {
-        if (value != null) {
-          showFen(context, value)
-        }
-      });
-    },
   );
   /// 展示分数
-  void showFen(BuildContext context, fen) async{
+  void showFen(BuildContext context, fen, WDXUserViewModel userVM) async{
     var t = fen as WDXHomeData;
     WDXHttpRequest().request(
         "/user/score/upload",
@@ -55,8 +59,10 @@ class _WDXHomePageState extends State<WDXHomePage> {
           "score": t.fen,
           "numberOfQuestions": t.count,
         }
-    ).then((value) {
+    ).then((value) async{
       print(value["message"]);
+      userVM.test = await WDXTiMu.lishi(token: WDXUserViewModel.staticToken);
+      userVM.tongzhi();
       WDXDialog.message(context: context, message: value['message'], title: "评测结果");
     });
   }

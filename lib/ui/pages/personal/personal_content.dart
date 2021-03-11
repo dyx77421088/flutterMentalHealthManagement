@@ -4,11 +4,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mentalHealthManagement/core/extension/int_extension.dart';
 import 'package:mentalHealthManagement/core/model/ti_mu/test.dart';
+import 'package:mentalHealthManagement/core/services/config/http_request.dart';
 import 'package:mentalHealthManagement/core/services/ti_mu/ti_mu.dart';
 import 'package:mentalHealthManagement/core/services/user/user_login.dart';
 import 'package:mentalHealthManagement/core/view_model/user_view_model.dart';
 import 'package:mentalHealthManagement/ui/pages/dang_an/dang_an.dart';
 import 'package:mentalHealthManagement/ui/pages/login/login.dart';
+import 'package:mentalHealthManagement/ui/pages/xlzx/xlzx.dart';
+import 'package:mentalHealthManagement/ui/pages/yuet/yuet.dart';
 import 'package:mentalHealthManagement/ui/shared/dialog/dialog.dart';
 import 'package:mentalHealthManagement/ui/shared/image/image.dart';
 import 'package:mentalHealthManagement/ui/shared/theme/my_colors.dart';
@@ -24,35 +27,28 @@ class WDXPersonalContent extends StatefulWidget {
 }
 
 class _WDXPersonalContentState extends State<WDXPersonalContent> {
-  WDXTestModel testModel;
   @override
   void initState() {
     super.initState();
-    init();
   }
 
-  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  SharedPreferences prefs;
-  void init() async{
-    prefs = await _prefs;
-    testModel = await WDXTiMu.lishi(token: prefs.getInt("id"));
-    setState(() {});
-  }
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Column(
-        children: [
-          buildAvatar(context),
-          SizedBox(height: 10.px,),
-          buildCard(),
-          SizedBox(height: 10.px,),
-          buildChat(context),
-          buildYueT(context),
-          buildXli(context),
-          buildDangAn(context),
-          buildExit(context),
-        ],
+      child: Consumer<WDXUserViewModel>(
+        builder: (ctx, userVM, child)=> ListView(
+          children: [
+            buildAvatar(context),
+            SizedBox(height: 10.px,),
+            buildCard(userVM),
+            SizedBox(height: 10.px,),
+            !userVM.isLogin ? Text("") : buildChat(context),
+            !userVM.isLogin ? Text("") : buildYueT(context),
+            !userVM.isLogin ? Text("") : buildXli(context),
+            !userVM.isLogin ? Text("") : buildDangAn(context),
+            !userVM.isLogin ? Text("") : buildExit(context),
+          ],
+        ),
       ),
     );
   }
@@ -75,18 +71,22 @@ class _WDXPersonalContentState extends State<WDXPersonalContent> {
   var _url = 'tel:17588888888';
 
   /// 在线咨询
-  Widget buildChat(BuildContext context) => buildItem(context, Icon(Icons.message), "在线咨询", () async{
+  Widget buildChat(BuildContext context) => buildItem(context, Icon(Icons.phone), "在线咨询", () async{
     await canLaunch(_url) ? await launch(_url) : throw 'Could not launch $_url';
   });
 
   /// 在线约谈
-  Widget buildYueT(BuildContext context) => buildItem(context, Icon(Icons.message), "在线约谈", (){});
+  Widget buildYueT(BuildContext context) => buildItem(context, Icon(Icons.message), "在线约谈", (){
+    Navigator.pushNamed(context, WDXYueTPage.routeName);
+  });
 
   /// 心理咨询
-  Widget buildXli(BuildContext context) => buildItem(context, Icon(Icons.message), "心理咨询", (){});
+  Widget buildXli(BuildContext context) => buildItem(context, Icon(Icons.message), "心理咨询", (){
+    Navigator.pushNamed(context, WDXXLZXPage.routeName);
+  });
 
   /// 心理档案
-  Widget buildDangAn(BuildContext context) => buildItem(context, Icon(Icons.message), "心理档案", (){
+  Widget buildDangAn(BuildContext context) => buildItem(context, Icon(Icons.person), "心理档案", (){
     Navigator.pushNamed(context, WDXDangAn.routeName);
   });
 
@@ -105,7 +105,7 @@ class _WDXPersonalContentState extends State<WDXPersonalContent> {
   );
 
   /// 卡片
-  Widget buildCard() => Container(
+  Widget buildCard(WDXUserViewModel userVM) => Container(
     width: double.infinity,
     height: 150.px,
     padding: EdgeInsets.all(5.px),
@@ -115,15 +115,24 @@ class _WDXPersonalContentState extends State<WDXPersonalContent> {
         crossAxisCount: 3,
       ),
       itemBuilder: (ctx, index) {
-        if (testModel == null) return buildCardItem("10", "答题数");
+        if (!userVM.isLogin) return buildCardItem("10", "答题数");
         switch (index) {
-          case 0: return buildCardItem("${testModel.count}", "测试数");
-          case 1: return buildCardItem("10", "答题数");
-          default: return buildCardItem("${testModel.topicCount}", "总答题数");
+          case 0: return buildCardItem("${userVM.count}", "测试数");
+          case 1: return GestureDetector(child: buildCardItem("预警", "点击查看"), onTap: (){yujing(context);},);
+          default: return buildCardItem("${userVM.topicCount}", "总答题数");
         }
       }
     ),
   );
+
+  void yujing(BuildContext context) {
+    WDXHttpRequest().request(
+      "/user/score/predict",
+      headers: {"token":WDXUserViewModel.staticToken},
+    ).then((value) {
+      WDXDialog.message(context: context, message: value['message'], title: "预测结果");
+    });
+  }
 
   Widget buildCardItem(String text1, String text2) => Card(
       color: Colors.green,
@@ -131,8 +140,9 @@ class _WDXPersonalContentState extends State<WDXPersonalContent> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(text1, style: TextStyle(fontSize: 40.px),),
-            Text(text2)
+            Text(text1, style: TextStyle(fontSize: 40.px, color: Colors.white)),
+            SizedBox(height: 4),
+            Text(text2, style: TextStyle(color: Color(0xccf5f5f5)),)
           ],
         ),
       ),
@@ -144,24 +154,25 @@ class _WDXPersonalContentState extends State<WDXPersonalContent> {
     height: 200.px,
     width: double.infinity,
     color: WDXColors.green[300],
-    child: Center(
-      child: Stack(
+    child: Consumer<WDXUserViewModel>(
+      builder: (ctx, userVM, child) => Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
             width: 100.px,height: 100.px,
-            child: CircleAvatar(backgroundColor: Colors.white,
-              child: Container(
-                width: 80.px,height: 80.px,
-                child: Consumer<WDXUserViewModel>(
-                  builder: (ctx, userVM, child) => GestureDetector(
+            child: CircleAvatar(
+                backgroundColor: Colors.white,
+                child: Container(
+                  width: 80.px,height: 80.px,
+                  child: GestureDetector(
                     child: CachedNetworkImage(
-                        imageUrl: userVM.head ?? "http://via.placeholder.com/350x150",
-                        // imageUrl: "https://img95.699pic.com/desgin_photo/40157/6029_detail.jpg!detail860/fw/820/crop/0x1309a0a0/quality/90",
-                        // imageUrl: "http://via.placeholder.com/350x150",
-                        placeholder: (BuildContext ctx, String url)=>Center(child: CircularProgressIndicator(),),
-                        errorWidget: (ctx, url, err) => Center(child: Icon(Icons.error)),
-                        imageBuilder: (ctx, img) => CircleAvatar(backgroundImage: img,),
-                      ),
+                      imageUrl: userVM.head ?? "http://via.placeholder.com/350x150",
+                      // imageUrl: "https://img95.699pic.com/desgin_photo/40157/6029_detail.jpg!detail860/fw/820/crop/0x1309a0a0/quality/90",
+                      // imageUrl: "http://via.placeholder.com/350x150",
+                      placeholder: (BuildContext ctx, String url)=>Center(child: CircularProgressIndicator(),),
+                      errorWidget: (ctx, url, err) => Center(child: Icon(Icons.error)),
+                      imageBuilder: (ctx, img) => CircleAvatar(backgroundImage: img,),
+                    ),
                     onTap: () {
                       if (userVM.isLogin) {
                         // 选择图片并上传
@@ -173,11 +184,11 @@ class _WDXPersonalContentState extends State<WDXPersonalContent> {
                   ),
                 ),
               ),
-            )
-          ),
-        ],
-      ),
-    ),
+        ),
+        SizedBox(height: 10.px,),
+        Text(userVM.isLogin ? userVM.nickname ?? "没名字" : "请先登录")
+      ],
+    ),)
   );
 
   void selectImage(BuildContext context, WDXUserViewModel userVM) {
